@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Xael Vault">
   <meta name="description" content="Xael: a local-first campaign vault for offline play and backups.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; script-src 'self' 'wasm-unsafe-eval' https://esm.run https://*.esm.run https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -24,7 +24,7 @@
     </header>
     <main id="app" tabindex="-1">
       <section class="view active" id="view-home" aria-labelledby="homeHeading">
-        <div class="overline">PROTOTYPE 01 · SANDBOX MODE</div>
+        <div class="overline">PROTOTYPE 02 · SANDBOX MODE</div>
         <h1 id="homeHeading">Your world.<br><em>Your rules.</em></h1>
         <p class="lead">A permanent home for the story, independent of the AI's short-term memory.</p>
         <div class="warning-note"><span aria-hidden="true">◈</span><p><strong>Separate from your live campaign.</strong> Nothing here writes to Xael's existing Google documents or advances MG23 canon.</p></div>
@@ -99,7 +99,7 @@
           <p class="muted">Clears only this sandbox's locally stored records. Does not affect your live game or other apps.</p>
           <button class="danger-button" id="resetBtn" type="button">Erase sandbox vault</button>
         </div>
-        <p class="footer-note">XAEL LOCAL VAULT · v0.1 · No analytics · No AI API · No server database · This is not a completed game engine.</p>
+        <p class="footer-note">XAEL LOCAL VAULT · v0.2 · Experimental on-device AI · No paid AI API · No server database · Not a completed game engine.</p>
       </section>
     </main>
     <nav class="bottom-nav" aria-label="Main sections">
@@ -111,5 +111,6 @@
   </div>
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="app.js" defer></script>
+  <script src="local-ai.js" defer></script>
 </body>
 </html>

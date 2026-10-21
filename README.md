@@ -1,37 +1,35 @@
-# Xael · Local Vault (prototype 0.1)
+# Xael Local Vault v0.2 — Optional local AI compatibility test
 
-This is a **standalone test vault**, not a playable AI game yet. It has no connection to the live Xael campaign or Google Drive. No canon has been migrated.
+**Sandbox only.** No changes to any real Xael campaign files, no server-side database and no paid AI API.
 
-## What works
-- Scene name, location, and time stored locally in IndexedDB.
-- Player actions saved first as pending. Resolutions are appended as separate records; neither is silently replaced.
-- NPC records with public facts and private knowledge in separate fields.
-- Manual offline AI bridge: copy a scoped test prompt into PocketPal, then paste its response into the vault after reviewing it.
-- Export full SHA-256-checked JSON backups; verify checksum, preview and confirm before restore.
-- Offline app shell via a service worker when deployed over HTTPS.
-- No analytics, no backend, no usage-based APIs, no model download or network request made by the app.
+## Changes from v0.1
+- Original IndexedDB database name, version, stores and backup format are UNCHANGED. Restored and pending turns should remain intact.
+- Adds an optional "Experimental local AI" tool in **Turns**, only when a player action is pending.
+- WebGPU model downloads run in your own browser; generation occurs on the device. It is NOT the Ministral model you downloaded in PocketPal.
+- A generated response fills a draft box; **nothing is committed until you review and tap Append response to journal.**
+- Manual PocketPal copy/paste still works if the browser model fails.
 
-## How to host with GitHub Pages for $0, using iPhone Safari
-1. Create a GitHub account if necessary, then a new **public** repository, e.g., `xael-local-vault`.
-2. In Safari on github.com, use the repository's **Add file → Upload files** interface and upload `index.html`, `app.js`, `styles.css`, `sw.js`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, and `icon-512.png` from this package **to the repository root**. Mobile layout may require **Request Desktop Website**. The README is optional.
-3. Open repository **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, choose branch **main**, folder **/(root)**, and Save.
-4. Wait for GitHub Pages to give you an HTTPS URL like `https://YOURNAME.github.io/xael-local-vault/` (that URL is an example, not a working link).
-5. Open the HTTPS address in Safari. Use Share → Add to Home Screen → Open as Web App.
-6. Open once while online so the app shell can cache, then test in Airplane Mode. A successful offline test requires service-worker installation.
-7. In the vault, test a pending turn, three sample NPCs, save the response, export to Files, and restore from backup.
+## Before uploading
+1. In your existing Home Screen Xael app, go to **Vault → Download backup**. Save the backup JSON to Files and ideally duplicate it to another folder. **Do not upload any backup to GitHub.**
+2. Upload/replace **index.html, app.js, styles.css and sw.js** in the GitHub Pages public repository, **AND ADD local-ai.js**. Keep the existing icons and manifest unchanged.
+3. Use GitHub's commit upload, wait for Pages deployment, then completely close and reopen the Home Screen app. Its service worker may show a cached v0.1 once before updating; reload/reopen after deployment.
+4. Verify your existing turn(s) and NPC records are intact **before testing AI**.
 
-**Critical:** Everything in a public GitHub repo is public! Upload only these generic app code files. NEVER upload your real Xael campaign files, ledger, NPC secrets, private documents, or backup JSON. These should be imported only into the app's local database using its restore feature *after* a suitable migration format is developed.
+## Local AI test
+1. Do a NEW SANDBOX action only once the previous action is resolved.
+2. In **Turns**, choose **SmolLM2 360M** as the lightest feasibility test. This tiny model is NOT suitable to narrate the full Xael campaign.
+3. Press **Check WebGPU and load local model** and approve first download, preferably on Wi-Fi. Loading takes time. For better quality later choose Llama 3.2 1B; it needs more memory.
+4. Press **Generate draft locally**. If a response appears, read it before tapping **Append response to journal**.
+5. Tap **Unload AI** to free resources after the test.
+6. If you see WebGPU unavailable, load failure, or Safari kills the page: your journal is still valid. Use the original manual PocketPal bridge; report the exact error.
 
-## Costs and limitations
-- GitHub Pages on a public repository is currently available on GitHub Free, subject to its terms and use limits.
-- This app requires no paid cloud inference, database or hosting plan.
-- Web apps on iOS can lose IndexedDB data if browser site data is cleared, storage pressure causes eviction, or the web app is uninstalled. Export backups to Files frequently, ideally after each important session, and maintain a separate copy.
-- Private notes are only **hidden in the UI** behind a disclosure. They are **not encrypted**. The holder of the device can inspect the local data. Don't import sealed gameplay files yet.
-- PocketPal and this web app are **not automatically integrated**. The manual copy/paste bridge is temporary. WebGPU in-browser AI integration remains a future, device-specific experiment.
-- The app does not resolve D&D dice, resources, finances, long-running calendar, game canon, or role-play content beyond storing test records.
+## Important limitations
+- The first module/model download requires the internet. The AI runtime imports a pinned WebLLM package from esm.run and model files from public repositories (Hugging Face/GitHub CDN). This is **not** a paid AI API. Your roleplay text is fed to the on-device inference engine and is not intentionally uploaded; downloading code/models still contacts those hosts.
+- The web app's offline shell is cached; whether the AI *library and weights* work offline after downloading has NOT yet been verified on iOS.
+- The earlier PocketPal Ministral 3 3B weights are NOT reused here.
+- Using WebGPU in an iPhone Home Screen app is browser/version-dependent. This is an **experimental trial**, not a guaranteed feature.
+- Never put real campaign secrets in the public GitHub repository. Keep the vault and all sealed materials local; make backups regularly.
+- No multiplayer, no advanced D&D rules automation, no current-campaign import, no autonomous NPC simulation, no reliable safety guarantee or hidden progress engine exists in v0.2.
 
-## To test on a developer machine (optional, not necessary on iPhone)
-Serve these files over localhost: `python -m http.server 8765`. Open `http://localhost:8765` in Chromium.
-
-## Build verification
-This package passed JavaScript syntax checks, static HTML/JS element checks and local-asset verification. Live browser testing was unavailable in the build environment, so data persistence, iOS installation, and offline behavior must still be tested on your iPhone. PocketPal bridging is manual only.
+## Backup compatibility
+v0.2 reads the same IndexedDB storage and v0.1 JSON backup format without a schema migration. Do not erase the Home Screen app or clear website data while updating. If the upgrade fails, your downloaded backup can be restored into a clean v0.1 install.
