@@ -8,3 +8,15 @@ select{width:100%;border-radius:13px;min-height:48px;background:#130f1b;color:va
 .ai-lab .subtle-button:disabled{opacity:.4}
 .ai-lab progress{width:100%;height:12px;margin:12px 0 2px;accent-color:var(--gold)}
 .ai-lab #aiStatus{overflow-wrap:anywhere}
+
+/* v0.3 — optional AI Horde volunteer cloud drafts */
+.horde-lab{border-color:#aa8663;background:#241929}
+.horde-lab .subtle-button{background:#53405b}
+.horde-lab .text-button{margin:8px 0}
+.consent-line{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:12px;line-height:1.5;margin:16px 0;color:#eadced}
+.consent-line input{width:20px;min-width:20px;height:20px;min-height:20px;accent-color:var(--gold);margin:0}
+.horde-preview{margin:12px 0;border:1px solid #574663;padding:10px;border-radius:10px}
+.horde-preview summary{font-size:12px;font-weight:700;color:var(--gold);cursor:pointer}
+.horde-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;font-size:11px;color:#c6b7cf;line-height:1.5}
+#hordeStatus{overflow-wrap:anywhere}
+.horde-lab .subtle-button:disabled{opacity:.5}

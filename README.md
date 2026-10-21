@@ -1,23 +1,41 @@
-# Xael Local Vault v0.2.1 — local AI runtime fix (sandbox)
+# Xael Local Vault v0.3 — AI Horde sandbox integration
 
-This is a **small patch** to an already installed v0.2 app. It does **not** change or reset the existing database, backups, journal, or game state. Upload only these three files to the ROOT of the **existing** GitHub `xael-local-vault` repository: `local-ai.js`, `sw.js`, `README.md`. GitHub may show them as updated/replaced; do not upload the ZIP.
+**A functional prototype, not the live Xael campaign.** No live gameplay, no MG23 changes, no import of Docs 00–13 or sealed information. This update changes only static application files. It retains the **existing IndexedDB database name, version, object stores, and v0.1 backup JSON schema**. The pre-existing completed T00001 and pending T00002 should remain on the Home Screen installation.
 
-## Why
-The existing WebLLM v0.2.85 runtime has a possible `Object has already been disposed` generation bug. This patch pins `@mlc-ai/web-llm` to **0.2.82** (documented working with some affected GPU setups), handles a disposed runtime without reusing it, and bumps the app-shell cache from `xael-vault-v0.2.0` to `xael-vault-v0.2.1`.
+## What is new
 
-The match is **not proof** of the cause on iOS. We still need a device retest. The older WebLLM runtime may download different supporting libraries on first use. This patch does not modify the Llama 3.2 1B model selection or prompt.
+- Optional **Generate with Stheno via AI Horde** inside Turns while an action is pending. No paid API, no paid proxy, no model running hot on the iPhone.
+- Preset exact model ID: `koboldcpp/L3-8B-Stheno-v3.2`. Availability depends on volunteer workers.
+- **Direct browser-to-Horde request** using `POST https://aihorde.net/api/v2/generate/text/async`, followed by `GET /generate/text/status/{id}`. Cancel uses `DELETE` for that same endpoint.
+- Submit only after an explicit sandbox privacy confirmation. The app includes a **preview of the entire outgoing text**.
+- The sandbox brief contains location, in-world time, player input, at most two previous test turns, and NPC **public** notes. The `privateNotes` / DM-only NPC field is **not sent**. However, recent journal text itself may contain sensitive information, so always inspect the preview.
+- An optional **AI Horde key field** is in memory for this screen only; it is not placed in GitHub source, localStorage, IndexedDB, or backups. Leave it blank for the official anonymous key `0000000000` (lower-priority queue). An API key provided directly to the Horde endpoint is visible to Horde; that is required for authorization.
+- The worker's output populates the existing **unsaved draft** box. A player action **remains pending** until the user reviews and clicks **Append response to journal**. No automatic save of AI text.
+- Existing experimental on-device WebLLM panel and PocketPal manual bridge remain available; you can leave them unused.
+- v0.3 service worker adds `horde-ai.js` to the offline app shell. The cloud generator itself **requires internet**.
 
-## Before uploading
-1. In your existing Xael Home Screen app, choose **Vault → Download backup** and save to Files. Keep your current T00002 pending action; **do not erase the vault**.
-2. Upload `local-ai.js`, `sw.js`, `README.md` into the existing repository root, commit to `main`, and wait for Pages deployment.
-3. Fully close and reopen the Home Screen app. It may take a second reopen for the new service worker to replace its old cached copy.
-4. Confirm **T00001 resolved** and **T00002 pending**.
-5. In Turns, choose Llama 3.2 1B, load once, and check the status text includes **WebLLM 0.2.82**. Generate a test draft, **but do not append it** until it is reviewed.
-6. If generation fails again, capture the exact error. Do not retry repeatedly, clear site data, or delete the app.
+## Installation on iPhone — no PC needed
 
-## Scope and limitations
-- The AI response is only an unsaved draft until manually appended.
-- This change does **not** import or modify MG23 canon.
-- No paid cloud API or database is added. Model/library downloads contact public hosts; inference remains local.
-- On-device Safari/WebGPU stability is not guaranteed; the manual PocketPal workflow is still available.
-- Keep JSON backups in Files, especially since iOS storage isn't a substitute for independent backup.
+1. Inside the **existing Home Screen Xael app**, use `Vault → Download backup`. Confirm the backup JSON is saved to Files. Make a second copy if possible.
+2. Unzip the `xael-v0.3-github-update.zip` download in Files.
+3. Open the existing public GitHub repository `WolfSlaterGaming/xael-local-vault`. Upload the **seven individual files** from the ZIP to the repository ROOT on the `main` branch (not the ZIP; not a folder): `README.md`, `index.html`, `app.js`, `styles.css`, `sw.js`, `local-ai.js`, and the new `horde-ai.js`.
+4. Tap **Commit changes**. Wait for GitHub Pages deployment. Fully close and reopen the Home Screen app. If it still says *Prototype 02*, reopen a second time for the new service worker; do **not** clear website data or uninstall.
+5. Check the counters and Turns: **T00001 Resolved**, **T00002 Pending**. If these don't match, stop and do not submit an AI request; restore your backup only with guidance.
+6. In **Turns → Pending: T00002**, locate **AI Horde · free volunteer cloud test**. Check the outgoing preview. Enter a personal Horde key into the local field only if desired; leave it blank to use the anonymous service.
+7. Read and check the sandbox-only consent. Tap **Generate with Stheno via AI Horde**. After an additional confirmation, wait for the status (queue/worker/draft). If it fails, the action is still pending; report the full status message.
+8. When the draft appears, **review it first**. Do **not** automatically append it; it may fabricate people, history, or NPC knowledge. You can revise or discard it.
+
+## Technical scope and important limitations
+
+- AI Horde uses volunteer-run machines; **workers may see the submitted text**. DO NOT send the real Xael transcript, campaign notes, personal details, Doc 07/12/13 sealed mysteries, or other protected/private information. Never upload backups or API keys to public GitHub.
+- AI Horde has provider/community rules; mature content handling and specific model access are **not guaranteed** to be unrestricted. Service requests may be refused, queued, unavailable, delayed, or time out.
+- A browser CORS or request failure is possible. The integration uses official API routes, but direct iPhone Safari/Home Screen compatibility **cannot be verified in this build environment**. No paid gateway is included. A failed cloud call never modifies the local game ledger.
+- The model may invent background characters, conversations, and NPC knowledge. There is no automatic canon validator, no trustworthy sealed-history integration, no full D&D engine, no live MG23 migration, and no background scheduling.
+- Closing the app during a cloud job may abandon its response. The original pending player action stays local. Avoid repeatedly resubmitting if an acknowledgement is lost, since the remote request may still run.
+- Cache/offline shell and existing backups remain independent of the AI Horde connection. Browser persistent storage is not an absolute data guarantee; keep exported backups.
+
+## Verification performed
+
+- Source JS syntax checks; HTML asset references and cache contents checked.
+- Mocked Horde request flow tests for asynchronous submission and poll, staged draft, cancellation/no-commit and API-error handling; no real external generation submitted.
+- Direct Safari and live AI Horde API functionality must be tested on the user's iPhone. All tests are sandbox-only.
