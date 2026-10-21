@@ -1,9 +1,11 @@
-// Xael Local Vault v0.2 optional local-inference lab.
+// Xael Local Vault v0.2.1 experimental local-inference patch.
 // No data is submitted to an AI provider. Module/weights download from public hosts when loading.
 // On-device browser inference is EXPERIMENTAL on iOS; all journal writes remain in app.js.
 'use strict';
 (() => {
-  const LIB = 'https://esm.run/@mlc-ai/web-llm@0.2.85';
+  // 0.2.85 has a reported disposed-object generation regression on some GPUs.
+  // Conservative pin to the documented working release; verify on this iPhone.
+  const LIB = 'https://esm.run/@mlc-ai/web-llm@0.2.82';
   let engine = null;
   let busy = false;
   let loadedModel = '';
@@ -40,7 +42,7 @@
         setMessage(text,pct);
       }});
       loadedModel=modelId;
-      setMessage('READY — '+modelId+'. Generate a draft; you must review it before committing.',100);
+      setMessage('READY — '+modelId+' (WebLLM 0.2.82). Generate a draft; review it before committing.',100);
     }catch(err){console.error('Local AI load failed:',err);engine=null;loadedModel='';setMessage('AI unavailable: '+String(err?.message||err).slice(0,240)+' Your saved turn is unchanged.',0);}
     finally{busy=false;sync();}
   }
@@ -64,15 +66,31 @@
       area.value=draft;
       const sec=((performance.now()-started)/1000).toFixed(1);
       setMessage('Draft ready in '+sec+' seconds. REVIEW below and tap “Append response to journal” only if acceptable.',100);
-    }catch(err){console.error('Local AI generation failed:',err);setMessage('Generation failed: '+String(err?.message||err).slice(0,230)+'. Your pending player action is safe.',100);}
+    }catch(err){
+      console.error('Local AI generation failed:',err);
+      const detail=String(err?.message||err);
+      // A disposed GPU/runtime object must never remain marked READY or reused.
+      if(/already been disposed|module has been disposed|device lost|device removed|GPUDevice|out of memory/i.test(detail)) {
+        engine=null;
+        loadedModel='';
+        setMessage('AI runtime became unavailable: '+detail.slice(0,100)+'. Close and reopen Xael before reloading. Your pending action is safe; do not erase your vault.',0);
+      } else {
+        setMessage('Generation failed: '+detail.slice(0,230)+'. Your pending player action is safe.',100);
+      }
+    }
     finally{busy=false;sync();}
   }
   async function unload(){
     if(busy)return;
     if(!engine){setMessage('No model currently loaded.');return;}
     busy=true;sync();
-    try{setMessage('Releasing AI GPU memory…');await engine.unload();engine=null;loadedModel='';setMessage('AI unloaded. Saved turns remain available. Cached model files may remain.',0);}
-    catch(err){setMessage('Could not unload cleanly. Closing the app may free memory: '+String(err?.message||err).slice(0,120));}
+    const retiring=engine;
+    // Clear the app reference before awaiting the GPU teardown. A failed teardown
+    // should not leave a disposed engine exposed for the next generation request.
+    engine=null;
+    loadedModel='';
+    try{setMessage('Releasing AI GPU memory…');await retiring.unload();setMessage('AI unloaded. Saved turns remain available. Cached model files may remain.',0);}
+    catch(err){setMessage('AI teardown reported an error. Close and reopen Xael before loading again: '+String(err?.message||err).slice(0,120),0);}
     finally{busy=false;sync();}
   }
   window.XaelAI={load,generate,unload,sync};
