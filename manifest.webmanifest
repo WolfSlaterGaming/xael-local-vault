@@ -1,0 +1,25 @@
+{
+  "name": "Xael \u2014 Local Vault",
+  "short_name": "Xael Vault",
+  "description": "Offline-first sandbox campaign records and backups.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#100d16",
+  "theme_color": "#15101f",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./"
+}

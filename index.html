@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15101f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Xael Vault">
+  <meta name="description" content="Xael: a local-first campaign vault for offline play and backups.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Xael · Local Vault</title>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">✦</div>
+      <div class="brand-copy"><span>XAEL</span><small>THE LOCAL VAULT</small></div>
+      <div class="connection" id="connection" aria-live="polite"><span class="status-dot"></span><span id="connectionText">LOCAL DATA</span></div>
+    </header>
+    <main id="app" tabindex="-1">
+      <section class="view active" id="view-home" aria-labelledby="homeHeading">
+        <div class="overline">PROTOTYPE 01 · SANDBOX MODE</div>
+        <h1 id="homeHeading">Your world.<br><em>Your rules.</em></h1>
+        <p class="lead">A permanent home for the story, independent of the AI's short-term memory.</p>
+        <div class="warning-note"><span aria-hidden="true">◈</span><p><strong>Separate from your live campaign.</strong> Nothing here writes to Xael's existing Google documents or advances MG23 canon.</p></div>
+        <div class="card scene-card">
+          <div class="section-bar"><h2>Current sandbox scene</h2><span class="tag">EDITABLE</span></div>
+          <label for="sceneTitle">Scene title</label>
+          <input id="sceneTitle" maxlength="150" placeholder="e.g. Village hall · Test world" autocomplete="off">
+          <div class="field-pair"><div><label for="sceneLocation">Location</label><input id="sceneLocation" maxlength="160" placeholder="Test village"></div><div><label for="sceneTime">In-world time</label><input id="sceneTime" maxlength="120" placeholder="7:00 PM"></div></div>
+          <button class="subtle-button" id="saveSceneBtn" type="button">Save scene details</button>
+        </div>
+        <div class="quick-stats" aria-label="Sandbox counts"><div><strong id="statsTurns">0</strong><span>Resolved turns</span></div><div><strong id="statsNPCs">0</strong><span>NPC records</span></div><div><strong id="statsPending">0</strong><span>Pending action</span></div></div>
+        <div class="card">
+          <div class="section-bar"><h2>New player action</h2><span class="tag gold">PRESERVE EXACT WORDS</span></div>
+          <p class="muted">Enter a sandbox action. It is stored locally as a pending turn before any narration.</p>
+          <label for="actionText">What does your character do?</label>
+          <textarea id="actionText" rows="5" maxlength="12000" placeholder="I step inside and greet the three villagers..." spellcheck="true"></textarea>
+          <button class="primary-button" id="saveActionBtn" type="button">Save pending action <span aria-hidden="true">→</span></button>
+          <p id="pendingLockMessage" class="muted hidden">Resolve the existing pending action in Turns before beginning a new one.</p>
+        </div>
+        <div class="section-bar section-loose"><h2>Latest activity</h2><button class="text-button" data-nav="turns" type="button">View journal →</button></div>
+        <div id="homeActivity" class="stack"></div>
+      </section>
+      <section class="view" id="view-turns" aria-labelledby="turnsHeading">
+        <div class="overline">APPEND-ONLY SANDBOX JOURNAL</div>
+        <h1 id="turnsHeading">Every turn<br><em>accounted for.</em></h1>
+        <p class="lead">A saved action cannot be edited. Its response is appended as a separate resolution.</p>
+        <div id="pendingPanel"></div>
+        <div class="section-bar section-loose"><h2>Turn history</h2><span class="tag" id="turnCountLabel">0 ENTRIES</span></div>
+        <div id="turnList" class="stack"></div>
+      </section>
+      <section class="view" id="view-npcs" aria-labelledby="npcsHeading">
+        <div class="overline">PERSONALITIES · PROVENANCE</div>
+        <h1 id="npcsHeading">People with<br><em>histories.</em></h1>
+        <p class="lead">Keep a person's established details and private knowledge in separate fields.</p>
+        <div class="card">
+          <div class="section-bar"><h2>Add sandbox NPC</h2><span class="tag gold">LOCAL</span></div>
+          <label for="npcName">Name</label><input id="npcName" maxlength="120" placeholder="e.g. Yara" autocomplete="off">
+          <label for="npcRole">Role</label><input id="npcRole" maxlength="200" placeholder="Healer, council organizer, scout...">
+          <label for="npcPublic">Established public facts</label><textarea id="npcPublic" rows="3" maxlength="7000" placeholder="Identity, personality, background, known duties..."></textarea>
+          <label for="npcPrivate">Private knowledge / DM-only notes</label><textarea id="npcPrivate" rows="3" maxlength="7000" placeholder="Known to this NPC, but not automatically to anyone else..."></textarea>
+          <button class="primary-button" id="addNPCBtn" type="button">Save NPC record <span aria-hidden="true">→</span></button>
+        </div>
+        <div class="section-bar section-loose"><h2>Saved NPCs</h2><button class="text-button" id="sampleNPCBtn" type="button">Load 3 sample NPCs</button></div>
+        <div id="npcList" class="stack"></div>
+      </section>
+      <section class="view" id="view-vault" aria-labelledby="vaultHeading">
+        <div class="overline">LOCAL STORAGE · YOUR CONTROL</div>
+        <h1 id="vaultHeading">Own your<br><em>history.</em></h1>
+        <p class="lead">Your records live in this browser installation. Download backups to Files to protect them.</p>
+        <div class="card accent-card">
+          <div class="section-bar"><h2>Backup the entire vault</h2><span class="tag gold">RECOMMENDED</span></div>
+          <p class="muted">Export scene details, all player actions, saved responses and NPC records into one verified JSON file. No cloud upload is performed.</p>
+          <button class="primary-button" id="exportBtn" type="button">Download backup <span aria-hidden="true">↓</span></button>
+          <div class="divider"></div>
+          <h2>Restore a backup</h2>
+          <p class="muted">Restore replaces this sandbox's contents after confirmation. Export your current vault before restoring another file.</p>
+          <label class="file-label" for="importFile">Choose a Xael backup file</label>
+          <input id="importFile" type="file" accept="application/json,.json">
+          <div id="importPreview" class="hidden"></div>
+          <button id="importBtn" class="subtle-button hidden" type="button">Restore verified backup</button>
+        </div>
+        <div class="card">
+          <div class="section-bar"><h2>Device status</h2><span class="tag">DIAGNOSTICS</span></div>
+          <div class="status-line"><span>Database</span><strong id="dbStatus">Checking…</strong></div>
+          <div class="status-line"><span>Offline app cache</span><strong id="cacheStatus">Checking…</strong></div>
+          <div class="status-line"><span>Storage persistence</span><strong id="persistStatus">Checking…</strong></div>
+          <button class="subtle-button" type="button" id="requestPersistBtn">Request persistent storage</button>
+          <p class="muted small">Even with persistent storage enabled, keep your exported backups. The browser may still clear site data or an app may be uninstalled.</p>
+        </div>
+        <div class="card danger-zone">
+          <h2>Start fresh</h2>
+          <p class="muted">Clears only this sandbox's locally stored records. Does not affect your live game or other apps.</p>
+          <button class="danger-button" id="resetBtn" type="button">Erase sandbox vault</button>
+        </div>
+        <p class="footer-note">XAEL LOCAL VAULT · v0.1 · No analytics · No AI API · No server database · This is not a completed game engine.</p>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Main sections">
+      <button class="nav-button selected" type="button" data-nav="home" aria-current="page"><span aria-hidden="true">⌂</span><small>Home</small></button>
+      <button class="nav-button" type="button" data-nav="turns"><span aria-hidden="true">▤</span><small>Turns</small></button>
+      <button class="nav-button" type="button" data-nav="npcs"><span aria-hidden="true">♧</span><small>NPCs</small></button>
+      <button class="nav-button" type="button" data-nav="vault"><span aria-hidden="true">◇</span><small>Vault</small></button>
+    </nav>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
