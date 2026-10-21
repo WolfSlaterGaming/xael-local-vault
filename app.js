@@ -1,5 +1,5 @@
 'use strict';
-// Xael Local Vault v0.3 — local sandbox journal with optional volunteer-cloud AI drafts. NEVER connects to gameplay canon.
+// Xael Local Vault v0.3.1 — local sandbox journal with optional volunteer-cloud AI drafts. NEVER connects to gameplay canon.
 const DB_NAME = 'xael-vault-sandbox';
 const DB_VERSION = 1;
 const EMPTY_SCENE = Object.freeze({title:'Sandbox · Not canon', location:'', time:''});
@@ -48,7 +48,21 @@ append(aiPanel,aiTitle,aiNote,modelLabel,modelSelect,loadAi,generateAi,unloadAi,
 const copy=textEl('button','Copy DM brief for PocketPal','subtle-button');copy.type='button';copy.addEventListener('click',()=>copyBrief(pending));const lab=textEl('label','Review or paste DM narration to append');lab.htmlFor='dmOutcome';const area=document.createElement('textarea');area.id='dmOutcome';area.rows=6;area.maxLength=30000;area.placeholder='Paste the model’s response here. Check it before committing.';const save=textEl('button','Append response to journal →','primary-button');save.type='button';save.addEventListener('click',()=>saveResolution(pending.id));// Volunteer-cloud generation stays completely separate from the permanent journal.
 const hordePanel=textEl('section','','ai-lab horde-lab');
 const hordeTitle=textEl('h3','AI Horde · free volunteer cloud test');
-const hordeIntro=textEl('p','Selected model: L3-8B-Stheno-v3.2. Workers can receive what you submit. The app sends the scene, brief recent dialogue, and public NPC notes only; private / DM-only NPC fields are EXCLUDED. No actual Xael canon.','muted');
+const hordeIntro=textEl('p','Volunteer response times vary. Check current availability and choose whether to exclude slower workers. Fictional sandbox only; private / DM-only NPC fields are excluded. No real Xael canon.','muted');
+const hordeModelLabel=textEl('label','Storytelling model');hordeModelLabel.htmlFor='hordeModel';
+const hordeModel=document.createElement('select');hordeModel.id='hordeModel';
+for (const [id,label] of [['stheno','Stheno 8B — current favorite'],['rocinante','Rocinante X 12B — alternate storytelling'],['skyfall','Skyfall 31B — larger alternate']]) {const option=document.createElement('option');option.value=id;option.textContent=label;hordeModel.appendChild(option);}
+const hordeCheck=textEl('button','Check volunteer availability (no story sent)','subtle-button');hordeCheck.id='hordeCheck';hordeCheck.type='button';hordeCheck.addEventListener('click',()=>window.XaelHorde?.checkAvailability());
+const hordeFastLabel=document.createElement('label');hordeFastLabel.className='consent-line';
+const hordeFast=document.createElement('input');hordeFast.type='checkbox';hordeFast.id='hordeFastOnly';hordeFast.checked=true;
+hordeFastLabel.append(hordeFast,textEl('span','Prefer faster volunteer workers (may increase queue time or leave no eligible worker).'));
+const hordeWaitLabel=textEl('label','Maximum request wait');hordeWaitLabel.htmlFor='hordeWaitLimit';
+const hordeWait=document.createElement('select');hordeWait.id='hordeWaitLimit';
+for(const [value,label] of [['60','60 seconds'],['90','90 seconds — recommended'],['150','150 seconds']]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;if(value==='90')opt.selected=true;hordeWait.appendChild(opt);}
+const hordeMaxLabel=textEl('label','Maximum answer length');hordeMaxLabel.htmlFor='hordeMaxTokens';
+const hordeMax=document.createElement('select');hordeMax.id='hordeMaxTokens';
+for(const [value,label] of [['128','128 tokens — shortest'],['160','160 tokens — recommended'],['240','240 tokens — longer']]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;if(value==='160')opt.selected=true;hordeMax.appendChild(opt);}
+
 const hordeKeyLabel=textEl('label','AI Horde key (optional)');hordeKeyLabel.htmlFor='hordeKey';
 const hordeKey=document.createElement('input');hordeKey.id='hordeKey';hordeKey.type='password';hordeKey.autocomplete='off';hordeKey.placeholder='Leave blank for anonymous (lower queue priority)';
 const hordeKeyNote=textEl('p','Your key stays in this screen only; it is not saved to GitHub, the vault, or a backup. Anonymous 0000000000 is used when blank.','muted small');
@@ -58,10 +72,10 @@ hordeConsentLabel.append(hordeConsent,textEl('span','I confirm this action and s
 const hordePreview=document.createElement('details');hordePreview.className='horde-preview';
 const hordeSummary=textEl('summary','Preview precisely what the volunteer model will receive');
 const hordePrompt=textEl('pre',briefForHorde(pending));hordePreview.append(hordeSummary,hordePrompt);
-const hordeSubmit=textEl('button','Generate with Stheno via AI Horde','subtle-button');hordeSubmit.id='hordeSubmit';hordeSubmit.type='button';hordeSubmit.addEventListener('click',()=>window.XaelHorde?.start(pending.id,briefForHorde(pending)));
+const hordeSubmit=textEl('button','Generate with selected AI Horde model','subtle-button');hordeSubmit.id='hordeSubmit';hordeSubmit.type='button';hordeSubmit.addEventListener('click',()=>window.XaelHorde?.start(pending.id,briefForHorde(pending)));
 const hordeCancel=textEl('button','Cancel queued request','text-button');hordeCancel.id='hordeCancel';hordeCancel.type='button';hordeCancel.disabled=true;hordeCancel.addEventListener('click',()=>window.XaelHorde?.cancel());
 const hordeStatus=textEl('p','Ready to connect when you choose Generate via AI Horde.','muted');hordeStatus.id='hordeStatus';hordeStatus.setAttribute('aria-live','polite');
-append(hordePanel,hordeTitle,hordeIntro,hordeKeyLabel,hordeKey,hordeKeyNote,hordeConsentLabel,hordePreview,hordeSubmit,hordeCancel,hordeStatus);
+append(hordePanel,hordeTitle,hordeIntro,hordeModelLabel,hordeModel,hordeCheck,hordeFastLabel,hordeWaitLabel,hordeWait,hordeMaxLabel,hordeMax,hordeKeyLabel,hordeKey,hordeKeyNote,hordeConsentLabel,hordePreview,hordeSubmit,hordeCancel,hordeStatus);
 const cloudDisclaimer=textEl('p','Unverified AI output must be checked for invented people, prior conversations, private knowledge leaks, and player agency before saving. Nothing is automatically canonical.','muted');
 append(outer,hordePanel,aiPanel,copy,lab,area,cloudDisclaimer,save);panel.appendChild(outer);window.XaelAI?.sync();window.XaelHorde?.sync();}}
 function renderNPCs(){const root=$('npcList');root.replaceChildren();if(!current.npcs.length){root.appendChild(makeEmpty('No NPCs in this sandbox yet. Add one above, or load the three sample NPCs.'));return;}for(const npc of current.npcs){const e=textEl('article','','entry'),head=textEl('div','','entry-header');append(head,textEl('strong',npc.name),textEl('span',npc.role||'NPC'));append(e,head,textEl('p',npc.publicNotes||'No public facts recorded.','public'));const details=document.createElement('details'),summary=textEl('summary','Reveal private / DM-only knowledge'),privateText=textEl('p',npc.privateNotes||'No private notes.','private');append(details,summary,privateText);e.appendChild(details);root.appendChild(e);}}
@@ -73,7 +87,7 @@ function briefForHorde(a){
   const recent=actions().filter(x=>resolutionFor(x.id)).slice(-2);
   const publicNotes=current.npcs.slice(0,12).map(n=>`- ${slice(n.name,120)} (${slice(n.role,120)}): ${slice(n.publicNotes,420)}`).join('\n');
   const history=recent.map(t=>`[${t.id}] PLAYER: ${slice(t.action,750)}\nDM: ${slice(resolutionFor(t.id)?.outcome,900)}`).join('\n');
-  return `SANDBOX FICTION ONLY — NOT THE REAL XAEL CAMPAIGN.\nYou are the Dungeon Master of a mature character-driven fantasy RPG. NPCs have independent motives, can disagree and lie, and experience believable consequences. Adult language, conflict and danger can arise naturally. Never choose actions, feelings, words or dice rolls for the player. Do not invent past conversations or already-completed events as established canon. NPCs only know the information given to them. Public notes are NOT proof of private knowledge. Produce just the immediate DM narration and NPC dialogue (100–160 words), then stop for the player's turn. Do not summarize the prompt.\n\nSCENE: ${slice(current.scene.title,150)}\nLOCATION: ${slice(current.scene.location,160)||'not specified'}\nIN-WORLD TIME: ${slice(current.scene.time,120)||'not specified'}\n\nPUBLIC NPC NOTES ONLY (no private/DM-only information):\n${publicNotes||'(No public NPC notes saved)'}\n\nRECENT COMMITTED SANDBOX TURN HISTORY:\n${history||'(None)'}\n\nEXACT CURRENT PLAYER ACTION ${a.id}:\n${slice(a.action,12000)}\n\nDM RESPONSE ONLY:\n`;
+  return `SANDBOX FICTION ONLY — NOT THE REAL XAEL CAMPAIGN.\nYou are the Dungeon Master of a mature character-driven fantasy RPG. NPCs have independent motives, can disagree and lie, and experience believable consequences. Adult language, conflict and danger can arise naturally. Never choose actions, feelings, words or dice rolls for the player. Do not invent past conversations or already-completed events as established canon. NPCs only know the information given to them. Public notes are NOT proof of private knowledge. Produce just the immediate DM narration and NPC dialogue (100–160 words), then stop. No meta comments, word counts, headings, or lines like "Your turn, player." Do not summarize the prompt.\n\nSCENE: ${slice(current.scene.title,150)}\nLOCATION: ${slice(current.scene.location,160)||'not specified'}\nIN-WORLD TIME: ${slice(current.scene.time,120)||'not specified'}\n\nPUBLIC NPC NOTES ONLY (no private/DM-only information):\n${publicNotes||'(No public NPC notes saved)'}\n\nRECENT COMMITTED SANDBOX TURN HISTORY:\n${history||'(None)'}\n\nEXACT CURRENT PLAYER ACTION ${a.id}:\n${slice(a.action,12000)}\n\nDM RESPONSE ONLY:\n`;
 }
 async function copyBrief(a){try{await navigator.clipboard.writeText(briefFor(a));showToast('DM brief copied. Paste it into PocketPal.');}catch{showToast('Clipboard permission unavailable; use a secure HTTPS site.');}}
 function go(section){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+section));document.querySelectorAll('[data-nav]').forEach(b=>{if(b.classList.contains('nav-button')){const active=b.dataset.nav===section;b.classList.toggle('selected',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');}});window.scrollTo({top:0,behavior:'instant'});}
